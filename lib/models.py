@@ -8,6 +8,8 @@ convention = {
 }
 metadata = MetaData(naming_convention=convention)
 
+engine = create_engine('sqlite:///many_to_many.db')
+
 Base = declarative_base(metadata=metadata)
 
 game_user = Table(
@@ -38,6 +40,22 @@ class Game(Base):
             f'title={self.title}, ' + \
             f'platform={self.platform})'
 
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+
+    reviews = relationship('Review', backref = backref('user'))
+
+    games = relationship('Game', secondary=game_user, back_populates='users')
+
+    def __repr__(self):
+        return f'User(id={self.id}, ' +\
+            f'name={self.name})'
+
 class Review(Base):
     __tablename__ = 'reviews'
 
@@ -56,18 +74,3 @@ class Review(Base):
             f'score={self.score}, ' + \
             f'game_id={self.game_id})'
 
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer(), primary_key=True)
-    name = Column(String())
-    created_at = Column(DateTime(), server_default=func.now())
-    updated_at = Column(DateTime(), onupdate=func.now())
-
-    reviews = relationship('Review', backref = backref('user'))
-
-    games = relationship('Game', secondary=game_user, back_populates='users')
-
-    def __repr__(self):
-        return f'User(id={self.id}, ' +\
-            f'name={self.name})'
